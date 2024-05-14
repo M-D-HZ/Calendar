@@ -2,7 +2,7 @@
 FROM postgres:16.2-bookworm
 
 # Set the working directory inside the container
-WORKDIR /db
+WORKDIR /db/calendar
 
 # Copy the SQL scripts to the working directory
 COPY calendar.sql /docker-entrypoint-initdb.d/

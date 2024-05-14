@@ -1,28 +1,98 @@
 version: "3.9"
 services:
-  db:
+  calendar:
+    container_name: calendar-service
+    build:
+      context: ./backend/calendar
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000   
+    depends_on:
+      - calendar-db 
+    environment:
+      - DATABASE_URL=postgresql://user1:password1@db:5432/calendar
+  
+  calendar-db:
+    container_name: calendar-db
     image: postgres:16.2
+    build:
+      context: ./db/calendar
+      dockerfile: Dockerfile
     environment:
       POSTGRES_DB: calendar 
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-    ports:
-      - 5432:5432
-  backend:
-    build: ./backend
-    command: ["flask", "run", "--host=0.0.0.0", "--port=8000"]
-    ports:
-      - 8000:8000
-    environment:
-      - FLASK_APP=app.py  # Replace with the name of your Flask app file
-      - FLASK_ENV=development
-      - DATABASE_URL=postgresql://admin:admin@db:5432/calendar
+      POSTGRES_USER: user1
+      POSTGRES_PASSWORD: password1
     volumes:
-      - ./backend:/app
+      - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./db/calendar/calendar.sql:/docker-entrypoint-initdb.d/init.sql
+      - calendar-data-db:/var/lib/postgresql/data
+  
+  # events:
+  #   build: ./backend/events
+  #   ports:
+  #     - 5001:5001   
+  #   depends_on:
+  #     - events-db
+  #   environment:
+  #     - DATABASE_URL=postgresql://user2:password2@db:5432/events
+  
+  # engagement:
+  #   build: ./backend/engagement
+  #   ports:
+  #     - 5002:5002   
+  #   depends_on:
+  #     - engagement-db
+  #   environment:
+  #     - DATABASE_URL=postgresql://user3:password3@db:5432/engagement
+  
+  # auth:
+  #   build: ./backend/auth
+  #   ports:
+  #     - 5003:5003   
+  #   depends_on:
+  #     - auth-db
+  #   environment:
+  #     - DATABASE_URL=postgresql://user4:password4@db:5432/users
+
+  
+  # events-db:
+  #   image: postgres:16.2
+  #   environment:
+  #     POSTGRES_DB: events 
+  #     POSTGRES_USER: user2
+  #     POSTGRES_PASSWORD: password2
+  #   volumes:
+  #     - ./data/events:/var/lib/postgresql/data
+  
+  # engagement-db:
+  #   image: postgres:16.2
+  #   environment:
+  #     POSTGRES_DB: engagement 
+  #     POSTGRES_USER: user3
+  #     POSTGRES_PASSWORD: password3
+  #   volumes:
+  #     - ./data/engagement:/var/lib/postgresql/data
+  
+  # auth-db:
+  #   image: postgres:16.2
+  #   environment:
+  #     POSTGRES_DB: users 
+  #     POSTGRES_USER: user4
+  #     POSTGRES_PASSWORD: password4
+  #   volumes:
+  #     - ./data/users:/var/lib/postgresql/data
+
   frontend:
-    build: ./frontend
-    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+    container_name: frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - 5173:5173
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./frontend:/app
   
 
+volumes:
+  calendar-data-db:
+    driver: local
