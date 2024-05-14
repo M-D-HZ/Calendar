@@ -27,60 +27,86 @@ services:
       - ./db/calendar/calendar.sql:/docker-entrypoint-initdb.d/init.sql
       - calendar-data-db:/var/lib/postgresql/data
   
-  # events:
-  #   build: ./backend/events
-  #   ports:
-  #     - 5001:5001   
-  #   depends_on:
-  #     - events-db
-  #   environment:
-  #     - DATABASE_URL=postgresql://user2:password2@db:5432/events
+  events:
+    container_name: events-service
+    build:
+      context: ./backend/events
+      dockerfile: Dockerfile
+    ports:
+      - 5001:5001   
+    depends_on:
+      - events-db
+    environment:
+      - DATABASE_URL=postgresql://user2:password2@db:5432/events
+    
+  events-db:
+    container_name: events-db
+    image: postgres:16.2
+    build:
+      context: ./db/events
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: events 
+      POSTGRES_USER: user2
+      POSTGRES_PASSWORD: password2
+    volumes:
+      - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./db/events/events.sql:/docker-entrypoint-initdb.d/init.sql
+      - events-data-db:/var/lib/postgresql/data
   
-  # engagement:
-  #   build: ./backend/engagement
-  #   ports:
-  #     - 5002:5002   
-  #   depends_on:
-  #     - engagement-db
-  #   environment:
-  #     - DATABASE_URL=postgresql://user3:password3@db:5432/engagement
+  engagement:
+    container_name: engagement-service
+    build: 
+      context: ./backend/engagement
+      dockerfile: Dockerfile
+    ports:
+      - 5002:5002   
+    depends_on:
+      - engagement-db
+    environment:
+      - DATABASE_URL=postgresql://user3:password3@db:5432/engagement
   
-  # auth:
-  #   build: ./backend/auth
-  #   ports:
-  #     - 5003:5003   
-  #   depends_on:
-  #     - auth-db
-  #   environment:
-  #     - DATABASE_URL=postgresql://user4:password4@db:5432/users
-
+  engagement-db:
+    container_name: engagement-db
+    image: postgres:16.2
+    build:
+      context: ./db/engagement
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: engagement 
+      POSTGRES_USER: user3
+      POSTGRES_PASSWORD: password3
+    volumes:
+      - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./db/engagement/engagement.sql:/docker-entrypoint-initdb.d/init.sql
+      - engagement-data-db:/var/lib/postgresql/data
   
-  # events-db:
-  #   image: postgres:16.2
-  #   environment:
-  #     POSTGRES_DB: events 
-  #     POSTGRES_USER: user2
-  #     POSTGRES_PASSWORD: password2
-  #   volumes:
-  #     - ./data/events:/var/lib/postgresql/data
+  auth:
+    container_name: auth-service
+    build:
+      context: ./backend/auth
+      dockerfile: Dockerfile
+    ports:
+      - 5003:5003   
+    depends_on:
+      - auth-db
+    environment:
+      - DATABASE_URL=postgresql://user4:password4@db:5432/users
   
-  # engagement-db:
-  #   image: postgres:16.2
-  #   environment:
-  #     POSTGRES_DB: engagement 
-  #     POSTGRES_USER: user3
-  #     POSTGRES_PASSWORD: password3
-  #   volumes:
-  #     - ./data/engagement:/var/lib/postgresql/data
-  
-  # auth-db:
-  #   image: postgres:16.2
-  #   environment:
-  #     POSTGRES_DB: users 
-  #     POSTGRES_USER: user4
-  #     POSTGRES_PASSWORD: password4
-  #   volumes:
-  #     - ./data/users:/var/lib/postgresql/data
+  auth-db:
+    container_name: auth-db
+    image: postgres:16.2
+    build:
+      context: ./db/users
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: users 
+      POSTGRES_USER: user4
+      POSTGRES_PASSWORD: password4
+    volumes:
+      - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./db/users/users.sql:/docker-entrypoint-initdb.d/init.sql
+      - users-data-db:/var/lib/postgresql/data
 
   frontend:
     container_name: frontend
@@ -91,8 +117,19 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ./frontend:/app
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
   
 
 volumes:
   calendar-data-db:
+    driver: local
+  events-data-db:
+    driver: local
+  engagement-data-db:
+    driver: local
+  users-data-db:
     driver: local
