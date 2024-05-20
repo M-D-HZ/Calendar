@@ -6,11 +6,16 @@ services:
       context: ./backend/calendar
       dockerfile: Dockerfile
     ports:
-      - 5000:5000   
+      - 5000:8000   
     depends_on:
       - calendar-db 
     environment:
       - DATABASE_URL=postgresql://user1:password1@db:5432/calendar
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/calendar
+          target: /app
   
   calendar-db:
     container_name: calendar-db
@@ -18,10 +23,12 @@ services:
     build:
       context: ./db/calendar
       dockerfile: Dockerfile
+    ports:
+      - 5431:5432
     environment:
       POSTGRES_DB: calendar 
-      POSTGRES_USER: user1
-      POSTGRES_PASSWORD: password1
+      POSTGRES_USER: ${DB_USER?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD?}
     volumes:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/calendar/calendar.sql:/docker-entrypoint-initdb.d/init.sql
@@ -33,11 +40,16 @@ services:
       context: ./backend/events
       dockerfile: Dockerfile
     ports:
-      - 5001:5001   
+      - 5001:8000   
     depends_on:
       - events-db
     environment:
       - DATABASE_URL=postgresql://user2:password2@db:5432/events
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/events
+          target: /app
     
   events-db:
     container_name: events-db
@@ -45,10 +57,12 @@ services:
     build:
       context: ./db/events
       dockerfile: Dockerfile
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_DB: events 
-      POSTGRES_USER: user2
-      POSTGRES_PASSWORD: password2
+      POSTGRES_USER: ${DB_USER?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD?}
     volumes:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/events/events.sql:/docker-entrypoint-initdb.d/init.sql
@@ -60,22 +74,29 @@ services:
       context: ./backend/engagement
       dockerfile: Dockerfile
     ports:
-      - 5002:5002   
+      - 5002:8000   
     depends_on:
       - engagement-db
     environment:
       - DATABASE_URL=postgresql://user3:password3@db:5432/engagement
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/engagement
+          target: /app
   
-  engagement-db:
+  engagement-db: 
     container_name: engagement-db
     image: postgres:16.2
     build:
       context: ./db/engagement
       dockerfile: Dockerfile
+    ports:
+      - 5433:5432
     environment:
       POSTGRES_DB: engagement 
-      POSTGRES_USER: user3
-      POSTGRES_PASSWORD: password3
+      POSTGRES_USER: ${DB_USER?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD?}
     volumes:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/engagement/engagement.sql:/docker-entrypoint-initdb.d/init.sql
@@ -87,26 +108,36 @@ services:
       context: ./backend/auth
       dockerfile: Dockerfile
     ports:
-      - 5003:5003   
+      - 5003:8000   
     depends_on:
       - auth-db
     environment:
-      - POSTGRES_DB_USER=${APP_DB_USER}
-      - POSTGRES_DB_PASSWORD=${APP_DB_PASSWORD}
-      - POSTGRES_DB=${APP_DB_NAME_USERS}
-      - POSTGRES_DB_HOST=${APP_DB_HOST_USERS}
-      - POSTGRES_DB_PORT=${APP_DB_PORT_USERS}
+      - POSTGRES_DB=${AUTH_DB_NAME?}
+      - POSTGRES_USER=${DB_USER?}
+      - POSTGRES_PASSWORD=${DB_PASSWORD?}
+      - DATABASE_HOST=${AUTH_DB_HOST?}
+    networks:
+      - auth-db-network
+      - frontend-auth
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/auth
+          target: /app
   
   auth-db:
     container_name: auth-db
-    image: postgres:16.2
-    build:
-      context: ./db/users
-      dockerfile: Dockerfile
+    hostname: db
+    image: postgres:16.2-bookworm
+    ports:
+      - 5434:5432
     environment:
-      - POSTGRES_USER=${APP_DB_USER}
-      - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
-      - POSTGRES_DB=${APP_DB_NAME_USERS}
+      - POSTGRES_DB=${AUTH_DB_NAME?}
+      - POSTGRES_USER=${DB_USER?}
+      - POSTGRES_PASSWORD=${DB_PASSWORD?}
+    networks:
+      auth-db-network:
+        aliases: ["${AUTH_DB_HOST?}"]
     volumes:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/users/users.sql:/docker-entrypoint-initdb.d/init.sql
@@ -121,6 +152,8 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ./frontend:/app
+    networks:
+      - frontend-auth
     depends_on:
       - calendar
       - events
@@ -134,11 +167,11 @@ services:
   
 
 volumes:
-  calendar-data-db:
-    driver: local
-  events-data-db:
-    driver: local
-  engagement-data-db:
-    driver: local
-  users-data-db:
-    driver: local
+  calendar-data-db: {}
+  events-data-db: {}
+  engagement-data-db: {}
+  users-data-db: {}
+
+networks:
+  auth-db-network: {}
+  frontend-auth: {}

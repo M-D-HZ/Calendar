@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, request, url_for
 import requests
 
+
 app = Flask(__name__)
 
 
@@ -147,8 +148,14 @@ def register():
     #
     # Registration is successful if a user with the same username doesn't exist yet.
     # ================================
-
-    success = True  # TODO: call
+    
+    response = requests.post('http://auth-service:8000/register', json={'username': req_username, 'password': req_password})
+    if response.status_code == 200:
+        success = True
+    else:
+        success = False
+        
+    # success = True  # TODO: call
     save_to_session('success', success)
 
     if success:
