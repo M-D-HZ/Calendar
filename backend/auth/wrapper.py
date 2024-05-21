@@ -12,7 +12,7 @@ def get_url():
         drivername="postgresql+psycopg2",
         username=get_env_variable("POSTGRES_USER"),
         password=get_env_variable("POSTGRES_PASSWORD"),
-        host="auth-db",
+        host=get_env_variable("POSTGRES_HOST"),
         port=5432, 
         database=get_env_variable("POSTGRES_DB"),
     )
@@ -32,3 +32,22 @@ def create_user(username: str, password: str):
     session.add(user)
     session.commit()
     return {"message": "User created"}
+
+def user_login(username: str, password: str):
+    user = session.query(UserModel).filter(UserModel.username == username).first()
+    if user is None:
+        return {"message": "User not found"}
+    if user.password != password:
+        return {"message": "Invalid password"}
+    return {"message": "Login successful"}
+
+def get_user(u_id: int):
+    user = session.query(UserModel).filter(UserModel.id == u_id).first()
+    if user is None:
+        return {"message": "User not found"}
+    return {"id": user.id, "username": user.username}
+
+def get_all_users():
+    users = session.query(UserModel).all()
+    return [{"id": user.id, "username": user.username} for user in users]
+

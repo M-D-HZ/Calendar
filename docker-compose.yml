@@ -115,7 +115,7 @@ services:
       - POSTGRES_DB=${AUTH_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
       - POSTGRES_PASSWORD=${DB_PASSWORD?}
-      - DATABASE_HOST=${AUTH_DB_HOST?}
+      - POSTGRES_HOST=${AUTH_DB_HOST?}
     networks:
       - auth-db-network
       - frontend-auth
