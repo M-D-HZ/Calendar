@@ -41,13 +41,13 @@ def user_login(username: str, password: str):
         return {"message": "Invalid password"}
     return {"message": "Login successful"}
 
-def get_user(u_id: int):
+def find_user(u_id: int):
     user = session.query(UserModel).filter(UserModel.id == u_id).first()
     if user is None:
         return {"message": "User not found"}
     return {"id": user.id, "username": user.username}
 
-def get_all_users():
+def get_users():
     users = session.query(UserModel).all()
     return [{"id": user.id, "username": user.username} for user in users]
 
