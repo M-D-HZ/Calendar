@@ -1,12 +1,11 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import DeclarativeBase
 
-class base(DeclarativeBase):
+class Base(DeclarativeBase):
     """Base model which our classes will inherit from"""
     
-
-class UserModel(base):
-    __tablename__ = "users"
+class ShareCalendar(Base):
+    __tablename__ = "calendar"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String, unique=True)
-    password = Column(String)
+    user1 = Column(String)
+    user2 = Column(String)

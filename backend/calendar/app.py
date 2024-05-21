@@ -1,4 +1,7 @@
+from fastapi import FastAPI
+from share_calendar import calendarRouter
 
+app = FastAPI()
 
-if __name__ == "__main__":
-    print("Calendar container works!")
+app.include_router(calendarRouter, prefix="/calendar", tags=["calendar"])
+

@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from wrapper import create_user, user_login
 from pydantic import BaseModel
 
@@ -10,8 +10,11 @@ class RegisterRequest(BaseModel):
 
 @authrouter.post("/register")
 def register_user(registerRequest: RegisterRequest):
-    response = create_user(registerRequest.username, registerRequest.password)
-    return response
+    try:
+        response = create_user(registerRequest.username, registerRequest.password)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 class LoginRequest(BaseModel):
     username: str
@@ -19,8 +22,8 @@ class LoginRequest(BaseModel):
 
 @authrouter.post("/login")
 def login_user(logingRequest: LoginRequest):
-    response = user_login(logingRequest.username, logingRequest.password)
-    return response
-
-
-
+    try:
+        response = user_login(logingRequest.username, logingRequest.password)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))

@@ -23,10 +23,9 @@ Session = sessionmaker(bind=sqlengine)
 session = Session()
 
 def create_user(username: str, password: str):
-    print(get_url())
     existing_user = session.query(UserModel).filter(UserModel.username == username).first()
     if existing_user is not None:
-        return {"message": "User already exists"}
+        raise Exception("User already exists")
     
     user = UserModel(username=username, password=password)
     session.add(user)
@@ -36,15 +35,15 @@ def create_user(username: str, password: str):
 def user_login(username: str, password: str):
     user = session.query(UserModel).filter(UserModel.username == username).first()
     if user is None:
-        return {"message": "User not found"}
+        raise Exception("User not found")
     if user.password != password:
-        return {"message": "Invalid password"}
+        raise Exception("Invalid password")
     return {"message": "Login successful"}
 
 def find_user(u_id: int):
     user = session.query(UserModel).filter(UserModel.id == u_id).first()
     if user is None:
-        return {"message": "User not found"}
+        raise Exception("User not found")
     return {"id": user.id, "username": user.username}
 
 def get_users():

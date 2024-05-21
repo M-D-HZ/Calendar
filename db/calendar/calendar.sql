@@ -1,0 +1,5 @@
+CREATE TABLE calendar (
+  id SERIAL PRIMARY KEY,
+  user1 TEXT NOT NULL,
+  user2 TEXT NOT NULL
+)
