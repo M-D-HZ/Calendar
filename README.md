@@ -167,7 +167,30 @@ This setup forms a basic calendar and event management system with user authenti
 
 This repository contains the backend API for a calendar and event management system. It is built using FastAPI and follows a modular structure with separate routes for authentication, calendar sharing, engagements, events, and user management.
 
+## MicroServices
+
+- Auth (users management & Login/registration)
+- Calendar (sharing)
+- Events
+- Engagement (Participation and invites)
+
+These are the 4 microservices i have decided to create to have 4 independent microservices in my backend that do not rely on eachother. 
+
+### Why have i grouped these features and what if one fails?
+
+Grouping these features into separate microservices allows for:
+
+- Modularity: Each microservice focuses on specific functionalities.
+- Scalability: Components can be scaled independently based on demand.
+- Fault Isolation: If one microservice fails, others remain operational.
+- Flexibility: Different technologies can be used for each microservice.
+
+If one microservice fails, there may be partial functionality loss and an impact on user experience, but the overall system remains operational due to the independence of microservices.
+
 ## Project Structure
+
+Each of the microservices contain the following structure:
+
 - app.py: The main entry point for the FastAPI application.
 - models/: Contains Pydantic models for request validation.
 - routers/: Contains route handlers for different functionalities.
