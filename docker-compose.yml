@@ -1,14 +1,15 @@
-version: "3.9"
 services:
   calendar:
     container_name: calendar-service
     build:
       context: ./backend/calendar
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
-      - 5000:8000   
+      - "127.0.0.1:5000:8000"   
     depends_on:
-      - calendar-db 
+      calendar-db:
+        condition: service_healthy 
     environment:
       - POSTGRES_DB=${CALENDAR_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -17,18 +18,16 @@ services:
     networks:
       - calendar-db-network
       - frontend-calendar
-    develop:
-      watch:
-        - action: sync
-          path: ./backend/calendar
-          target: /app
-  
+    volumes:
+      - ./backend/calendar:/backend/calendar
+
   calendar-db:
     container_name: calendar-db
     hostname: db
     image: postgres:16.2-bookworm
+    restart: unless-stopped
     ports:
-      - 5431:5432
+      - "127.0.0.1:5431:5432"
     environment:
       - POSTGRES_DB=${CALENDAR_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -40,16 +39,23 @@ services:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/calendar/calendar.sql:/docker-entrypoint-initdb.d/init.sql
       - calendar-data-db:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U '${DB_USER}' -d '${CALENDAR_DB_NAME}' || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   events:
     container_name: events-service
     build:
       context: ./backend/events
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
-      - 5001:8000   
+      - "127.0.0.1:5001:8000"  
     depends_on:
-      - events-db
+      events-db:
+        condition: service_healthy
     environment:
       - POSTGRES_DB=${EVENTS_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -58,18 +64,16 @@ services:
     networks:
       - events-db-network
       - frontend-events
-    develop:
-      watch:
-        - action: sync
-          path: ./backend/events
-          target: /app
+    volumes:
+      - ./backend/events:/backend/events
     
   events-db:
     container_name: events-db
     hostname: db
     image: postgres:16.2-bookworm
+    restart: unless-stopped
     ports:
-      - 5432:5432
+      - "127.0.0.1:5432:5432"
     environment:
       - POSTGRES_DB=${EVENTS_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -81,16 +85,23 @@ services:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/events/events.sql:/docker-entrypoint-initdb.d/init.sql
       - events-data-db:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U '${DB_USER}' -d '${EVENTS_DB_NAME}' || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   engagement:
     container_name: engagement-service
     build: 
       context: ./backend/engagement
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
-      - 5002:8000   
+      - "127.0.0.1:5002:8000"  
     depends_on:
-      - engagement-db
+      engagement-db:
+        condition: service_healthy
     environment:
       - POSTGRES_DB=${ENGAGEMENT_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -99,18 +110,16 @@ services:
     networks:
       - engagement-db-network
       - frontend-engagement
-    develop:
-      watch:
-        - action: sync
-          path: ./backend/engagement
-          target: /app
+    volumes:
+      - ./backend/engagement:/backend/engagement
   
   engagement-db: 
     container_name: engagement-db
     hostname: db
     image: postgres:16.2-bookworm
+    restart: unless-stopped
     ports:
-      - 5433:5432
+      - "127.0.0.1:5433:5432"
     environment:
       - POSTGRES_DB=${ENGAGEMENT_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -122,16 +131,23 @@ services:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/engagement/engagement.sql:/docker-entrypoint-initdb.d/init.sql
       - engagement-data-db:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U '${DB_USER}' -d '${ENGAGEMENT_DB_NAME}' || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
   auth:
     container_name: auth-service
     build:
       context: ./backend/auth
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
-      - 5003:8000   
-    depends_on:
-      - auth-db
+      - "127.0.0.1:5003:8000"   
+    depends_on: 
+      auth-db:
+        condition: service_healthy
     environment:
       - POSTGRES_DB=${AUTH_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -140,18 +156,16 @@ services:
     networks:
       - auth-db-network
       - frontend-auth
-    develop:
-      watch:
-        - action: sync
-          path: ./backend/auth
-          target: /app
+    volumes:
+      - ./backend/auth:/backend/auth
   
   auth-db:
     container_name: auth-db
     hostname: db
     image: postgres:16.2-bookworm
+    restart: unless-stopped
     ports:
-      - 5434:5432
+      - "127.0.0.1:5434:5432"
     environment:
       - POSTGRES_DB=${AUTH_DB_NAME?}
       - POSTGRES_USER=${DB_USER?}
@@ -163,6 +177,11 @@ services:
       - ./db/config/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./db/users/users.sql:/docker-entrypoint-initdb.d/init.sql
       - users-data-db:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U '${DB_USER}' -d '${AUTH_DB_NAME}' || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     container_name: frontend

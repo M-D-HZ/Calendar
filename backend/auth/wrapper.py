@@ -1,4 +1,3 @@
-
 from sqlalchemy import create_engine, URL
 from sqlalchemy.orm import sessionmaker
 from models import UserModel
@@ -17,12 +16,14 @@ def get_url():
         database=get_env_variable("POSTGRES_DB"),
     )
 
-sqlengine = create_engine(get_url(), echo=True)
-
-Session = sessionmaker(bind=sqlengine)
-session = Session()
+def make_session():
+    sqlengine = create_engine(get_url(), echo=True)
+    Session = sessionmaker(bind=sqlengine)
+    session = Session()
+    return session
 
 def create_user(username: str, password: str):
+    session = make_session()
     existing_user = session.query(UserModel).filter(UserModel.username == username).first()
     if existing_user is not None:
         raise Exception("User already exists")
@@ -33,6 +34,7 @@ def create_user(username: str, password: str):
     return {"message": "User created"}
 
 def user_login(username: str, password: str):
+    session = make_session()
     user = session.query(UserModel).filter(UserModel.username == username).first()
     if user is None:
         raise Exception("User not found")
@@ -40,13 +42,15 @@ def user_login(username: str, password: str):
         raise Exception("Invalid password")
     return {"message": "Login successful"}
 
-def find_user(u_id: int):
-    user = session.query(UserModel).filter(UserModel.id == u_id).first()
+def find_user(username: str):
+    session = make_session()
+    user = session.query(UserModel).filter(UserModel.username == username).first()
     if user is None:
         raise Exception("User not found")
     return {"id": user.id, "username": user.username}
 
 def get_users():
+    session = make_session()
     users = session.query(UserModel).all()
     return [{"id": user.id, "username": user.username} for user in users]
 

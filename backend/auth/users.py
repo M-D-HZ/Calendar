@@ -4,10 +4,10 @@ from pydantic import BaseModel
 
 userRouter = APIRouter()
 
-@userRouter.get("/{u_id}")
-def get_user(u_id: int):
+@userRouter.get("/{username}")
+def get_user(username: str):
     try:
-        response = find_user(u_id)
+        response = find_user(username)
         return response
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
