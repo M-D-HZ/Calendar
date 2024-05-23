@@ -14,15 +14,12 @@ This repository contains a simple bash script to automate the process of pulling
 This project is a multi-service event management application, leveraging Docker Compose to orchestrate the various microservices and their respective databases.
 
 ## Table of Contents
-- Services
-- Volumes
-- Networks
-- Running the Project
-- Shutting Down the Project
+- Build and start all services
 - Environment Variables
 - Services
 
 ## Build and start all services:
+note that a run.sh script has been given that works with podman instead of docker (Using docker is still recommended). 
 
 - Start all services without rebuilding:
 
@@ -85,30 +82,39 @@ Login/Register:
 
     - Displays login page if not authenticated.
     - Displays list of public events if authenticated.
+
 - Event Creation: /event (POST)
 
     - Creates a new event and sends invites.
+
 - Calendar: /calendar (GET, POST)
 
     - Displays the calendar for the logged-in user or specified   - user.
+
 - Share Calendar: /share (GET, POST)
 
     - Shares your calendar with another user.
+
 - View Event: /event/<eventid> (GET)
 
     - Displays details for a specific event.
+
 - Login: /login (POST)
 
     - Authenticates a user and starts a session.
+
 - Register: /register (POST)
 
     - Registers a new user.
+
 - View Invites: /invites (GET)
 
     - Displays invites for the logged-in user.
+
 - Process Invite: /invites (POST)
 
     - Processes the response to an invite.
+    
 - Logout: /logout (GET)
 
     - Logs out the current user.
