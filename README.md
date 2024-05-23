@@ -2,8 +2,10 @@
 
 This repository contains a simple bash script to automate the process of pulling a Python container image and composing containers using Podman.
 
-- Script Overview
-    - The script performs the following tasks:
+A equivalent script has been provided for docker.
+
+### Script Overview
+The script performs the following tasks:
 
 - Sets up signal trapping: Captures SIGINT and SIGTERM signals to exit gracefully.
     - Pulls a Python container image: Uses podman pull to fetch the python:3.12-rc-slim-buster image.
@@ -114,7 +116,7 @@ Login/Register:
 - Process Invite: /invites (POST)
 
     - Processes the response to an invite.
-    
+
 - Logout: /logout (GET)
 
     - Logs out the current user.
